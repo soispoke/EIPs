@@ -26,9 +26,78 @@ FOCIL is a simple committee-based design improving upon previous IL mechanisms o
 
 ## Specification
 
+### Constants
+
+| Name | Value |
+| - | - |
+| `MAX_TRANSACTIONS_PER_INCLUSION_LIST` | `2**4 = 16` |
+| `MAX_GAS_PER_INCLUSION_LIST` | `2**21` |
+| `MAX_TRANSACTIONS_PER_INCLUSION_LIST_AGGREGATE` | `2 * MAX_TRANSACTIONS_PER_INCLUSION_LIST = 32` |
+| `MAX_GAS_PER_INCLUSION_LIST_AGGREGATE` | `2 * MAX_GAS_PER_INCLUSION_LIST = 2**22` |
+| `IL_COMMITTEE_SIZE` | `256` |
+
+### Reference Objects
+
+```
+class InclusionListEntry(Container):
+    from_address: ExecutionAddress
+    gas_limit: uint64
+```
+
+```
+class inclusionList(Container)
+    slot: Slot
+    proposer_index: ValidatorIndex
+    entries: List[InclusionListEntry, MAX_TRANSACTIONS_PER_INCLUSION_LIST]
+```
+
+```
+class InclusionListAggregatedEntry(Container):
+    from_address: ExecutionAddress
+    gas_limit: uint64
+    bitlist: List[byte, IL_COMMITTEE_SIZE]
+```
+
+```
+class InclusionListAggregated(Container):
+    slot: Slot
+    proposer_index: ValidatorIndex
+    message: List[InclusionListAggregatedEntry, MAX_TRANSACTIONS_PER_INCLUSION_LIST_AGGREGATE]
+```
+
 ### Consensus layer
 
 #### High-level overview
+
+TBA (Same as timeline)
+
+#### Specific changes
+
+**Beacon chain state transition spec:**
+
+- ***New** `inclusion_list` object:* Introduce a new `inclusion_list` for the IL committee to submit and nodes to process.
+- ***Modified** `BeaconBlockBody`:* Modified to include the aggregated inclusion list for that slot.
+- ***Modified** `process_execution_payload` function:* Update this process to include checks for the inclusion list evaluation.
+
+**Beacon chain P2P spec:**
+
+- ***New** gossipnet and validation rules for inclusion list:* Define new rules for handling the inclusion list in the gossip network and validation.
+- ***New** RPC request and response network for inclusion list:* Establish a new network for sending and receiving inclusion lists.
+
+**Validator spec:**
+
+- ***New** duty for preparing `inclusion_list`:* Inclusion list committee members to prepate and sign their respective local inclusion list.
+- ***New** proposer duty for aggregating `inclusion_list`:* Proposer to prepare an aggregated inclusion list and sign it.
+- ***New** attester duty for aggregating `inclusion_list`:* Attesters to prepare an aggregared inclusion list based on messages received for evaluation.
+- ***Modified** duty for `BeaconBlockBody`:* Update the duty to prepare the beacon block body containing `inclusion_list_aggregated` and satisfying transaction entries if block is not full.
+
+### Execution layer
+
+- ***New** `get_inclusion_list`:* Introduce a new function for the IL committee to retreive inclusion lists.
+- ***New** `new_inclusion_list`:* Define a new function for nodes to validate the execution side of the inclusion list (TBD).
+- ***Modified** `forkchoice_updated`:* Update the function with a `payload_attribute` to include the aggregated inclusion list as part of the attribute.
+- ***Modified** `new_payload`:* Update the function for EL clients to verify that `payload_transactions` satisfy `payload.inclusion_list_aggregated`.
+- ***New** validation rules:* Implement new validation rules based on the changes introduced in the Execution-API spec.
 
 #### Timeline
 
