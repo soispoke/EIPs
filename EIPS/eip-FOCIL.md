@@ -32,6 +32,8 @@ FOCIL is a simple committee-based design improving upon previous IL mechanisms o
 | - | - |
 | `MAX_TRANSACTIONS_PER_INCLUSION_LIST` | `2**4 = 16` |
 | `MAX_GAS_PER_INCLUSION_LIST` | `2**21` |
+| `MAX_TRANSACTIONS_PER_INCLUSION_LIST_AGGREGATE` | `2 * MAX_TRANSACTIONS_PER_INCLUSION_LIST = 32` |
+| `MAX_GAS_PER_INCLUSION_LIST_AGGREGATE` | `2 * MAX_GAS_PER_INCLUSION_LIST = 2**22` |
 | `IL_COMMITTEE_SIZE` | `256` |
 
 ### Reference Objects
@@ -60,7 +62,7 @@ class InclusionListAggregatedEntry(Container):
 class InclusionListAggregated(Container):
     slot: Slot
     proposer_index: ValidatorIndex
-    message: List[InclusionListAggregatedEntry, ?]
+    message: List[InclusionListAggregatedEntry, MAX_TRANSACTIONS_PER_INCLUSION_LIST_AGGREGATE]
 ```
 
 ### Consensus layer
