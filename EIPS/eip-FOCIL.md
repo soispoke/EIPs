@@ -46,7 +46,7 @@ class InclusionListEntry(Container):
 class inclusionList(Container)
     slot: Slot
     proposer_index: ValidatorIndex
-    summary: List[InclusionListEntry, MAX_TRANSACTIONS_PER_INCLUSION_LIST]
+    entries: List[InclusionListEntry, MAX_TRANSACTIONS_PER_INCLUSION_LIST]
 ```
 
 ```
@@ -58,6 +58,8 @@ class InclusionListAggregatedEntry(Container):
 
 ```
 class InclusionListAggregated(Container):
+    slot: Slot
+    proposer_index: ValidatorIndex
     message: List[InclusionListAggregatedEntry, ?]
 ```
 
