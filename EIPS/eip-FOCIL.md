@@ -45,9 +45,9 @@ class InclusionListEntry(Container):
 ```
 
 ```
-class inclusionList(Container)
+class InclusionList(Container)
     slot: Slot
-    proposer_index: ValidatorIndex
+    validator_index: ValidatorIndex
     entries: List[InclusionListEntry, MAX_TRANSACTIONS_PER_INCLUSION_LIST]
 ```
 
@@ -69,7 +69,7 @@ class InclusionListAggregated(Container):
 
 #### High-level overview
 
-TBA (Same as timeline)
+TBD (Same as timeline)
 
 #### Specific changes
 
@@ -83,6 +83,8 @@ TBA (Same as timeline)
 
 - ***New** gossipnet and validation rules for inclusion list:* Define new rules for handling the inclusion list in the gossip network and validation.
 - ***New** RPC request and response network for inclusion list:* Establish a new network for sending and receiving inclusion lists.
+- ***New** gossipnet and validation rules for aggregated inclusion list:* Define new rules for handling the aggregated inclusion list in the gossip network and validation.
+- ***New** RPC request and response network for aggregated inclusion list:* Establish a new network for sending and receiving aggregated inclusion lists.
 
 **Validator spec:**
 
@@ -95,6 +97,7 @@ TBA (Same as timeline)
 
 - ***New** `get_inclusion_list`:* Introduce a new function for the IL committee to retreive inclusion lists.
 - ***New** `new_inclusion_list`:* Define a new function for nodes to validate the execution side of the inclusion list (TBD).
+- ***New** `new_inclusion_list_aggregate`:* Define a new function to notify the execution layer with aggregated inclusion list.
 - ***Modified** `forkchoice_updated`:* Update the function with a `payload_attribute` to include the aggregated inclusion list as part of the attribute.
 - ***Modified** `new_payload`:* Update the function for EL clients to verify that `payload_transactions` satisfy `payload.inclusion_list_aggregated`.
 - ***New** validation rules:* Implement new validation rules based on the changes introduced in the Execution-API spec.
