@@ -90,7 +90,6 @@ TBD (Same as timeline)
 
 - ***New** duty for preparing `inclusion_list`:* Inclusion list committee members to prepate and sign their respective local inclusion list.
 - ***New** proposer duty for aggregating `inclusion_list`:* Proposer to prepare an aggregated inclusion list and sign it.
-- ***New** attester duty for aggregating `inclusion_list`:* Attesters to prepare an aggregared inclusion list based on messages received for evaluation.
 - ***Modified** duty for `BeaconBlockBody`:* Update the duty to prepare the beacon block body containing `inclusion_list_aggregated` and satisfying transaction entries if block is not full.
 
 ### Execution layer
