@@ -52,53 +52,47 @@ class InclusionList(Container)
 ```
 
 ```
-class InclusionListAggregatedEntry(Container):
+class InclusionListAggregateEntry(Container):
     from_address: ExecutionAddress
     gas_limit: uint64
     bitlist: List[byte, IL_COMMITTEE_SIZE]
 ```
 
 ```
-class InclusionListAggregated(Container):
+class InclusionListAggregate(Container):
     slot: Slot
     proposer_index: ValidatorIndex
-    message: List[InclusionListAggregatedEntry, MAX_TRANSACTIONS_PER_INCLUSION_LIST_AGGREGATE]
+    message: List[InclusionListAggregateEntry, MAX_TRANSACTIONS_PER_INCLUSION_LIST_AGGREGATE]
 ```
 
 ### Consensus layer
 
 #### High-level overview
 
-TBD (Same as timeline)
-
-#### Specific changes
-
 **Beacon chain state transition spec:**
 
 - ***New** `inclusion_list` object:* Introduce a new `inclusion_list` for the IL committee to submit and nodes to process.
-- ***Modified** `BeaconBlockBody`:* Modified to include the aggregated inclusion list for that slot.
+- ***Modified** `BeaconBlockBody`:* Modified to include the inclusion list aggregate for that slot.
 - ***Modified** `process_execution_payload` function:* Update this process to include checks for the inclusion list evaluation.
 
 **Beacon chain P2P spec:**
 
 - ***New** gossipnet and validation rules for inclusion list:* Define new rules for handling the inclusion list in the gossip network and validation.
 - ***New** RPC request and response network for inclusion list:* Establish a new network for sending and receiving inclusion lists.
-- ***New** gossipnet and validation rules for aggregated inclusion list:* Define new rules for handling the aggregated inclusion list in the gossip network and validation.
-- ***New** RPC request and response network for aggregated inclusion list:* Establish a new network for sending and receiving aggregated inclusion lists.
+- ***New** gossipnet and validation rules for inclusion list aggregate:* Define new rules for handling the inclusion list aggregate in the gossip network and validation.
+- ***New** RPC request and response network for inclusion list aggregate:* Establish a new network for sending and receiving inclusion lists aggregate.
 
 **Validator spec:**
 
 - ***New** duty for preparing `inclusion_list`:* Inclusion list committee members to prepate and sign their respective local inclusion list.
-- ***New** proposer duty for aggregating `inclusion_list`:* Proposer to prepare an aggregated inclusion list and sign it.
-- ***Modified** duty for `BeaconBlockBody`:* Update the duty to prepare the beacon block body containing `inclusion_list_aggregated` and satisfying transaction entries if block is not full.
+- ***New** proposer duty for aggregating `inclusion_list`:* Proposer to prepare an inclusion list aggregate and sign it.
+- ***Modified** duty for `BeaconBlockBody`:* Update the duty to prepare the beacon block body containing `inclusion_list_aggregate` and satisfying transaction entries if block is not full.
 
 ### Execution layer
 
 - ***New** `get_inclusion_list`:* Introduce a new function for the IL committee to retreive inclusion lists.
-- ***New** `new_inclusion_list`:* Define a new function for nodes to validate the execution side of the inclusion list (TBD).
-- ***New** `new_inclusion_list_aggregate`:* Define a new function to notify the execution layer with aggregated inclusion list.
-- ***Modified** `forkchoice_updated`:* Update the function with a `payload_attribute` to include the aggregated inclusion list as part of the attribute.
-- ***Modified** `new_payload`:* Update the function for EL clients to verify that `payload_transactions` satisfy `payload.inclusion_list_aggregated`.
+- ***Modified** `forkchoice_updated`:* Update the function with a `payload_attribute` to include the inclusion list aggregate as part of the attribute.
+- ***Modified** `new_payload`:* Update the function for EL clients to verify that `payload_transactions` satisfy `payload.inclusion_list_aggregate`.
 - ***New** validation rules:* Implement new validation rules based on the changes introduced in the Execution-API spec.
 
 #### Timeline
