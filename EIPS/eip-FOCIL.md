@@ -95,6 +95,16 @@ class InclusionListAggregate(Container):
 - ***Modified** `new_payload`:* Update the function for EL clients to verify that `payload_transactions` satisfy `payload.inclusion_list_aggregate`.
 - ***New** validation rules:* Implement new validation rules based on the changes introduced in the Execution-API spec.
 
+### Fork choice changes
+
+Validators performs additional checks (on top of existing validations) before attesting on a block. 
+
+- If the aggregate inclusion list is not made available before the deadline, the block is valid.
+- If the aggregate inclusion list is made available before the deadline:
+    - If the payload doesn't include those transactions, the block is considered as invalid.
+    - If the quality of inclusion list included in payload is not upto the mark (defined by the `Eval` function described below), the block is considered invalid. 
+    - The block is considered valid otherwise.
+
 #### Timeline
 
 A set of validators is selected from the beacon committee to become IL committee members for `slot N`.
