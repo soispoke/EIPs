@@ -173,11 +173,11 @@ To mitigate IL equivocation, FOCIL introduces a new P2P network rule that allows
 The block producer, responsible for constructing the execution payload, must ensure that the IL is satisfied. A naive way to do so would be to build an initial payload in whatever way the builder desires, then execute the following algorithm:
 
 1. Sequentially check validity of any yet-to-be-included IL tx against the post-state. If none is found, payload building is over.
-2. If one is found, append it to the end of the payload and update the post-state. Go back to step 1.
+2. If one is found, append it to the end of the payload, update the state and go back to step 1.
 
 The issue with this simple approach is that, given a set of `n` IL transactions, one might end up needing to do `n + (n-1) + (n-2) + ...` validity checks, so `O(n^2)`. For example, the `n`th tx might be valid while all others are not, but its execution sends balance to the sender of the `(n-1)`th tx, making it valid, and in turn, the `(n-1)`th sends balance to the sender of the `(n-2)`th tx, etc.
 
-To efficiently ensure that all valid IL txs have been included in the payload, builders can adopt a simple strategy: prior to building the payload, they store the `nonce` and `balance` of all Externally Owned Accounts (EOAs) involved in IL transactions. As they construct the payload, builders track these EOAs, maintaining and updating each EOA's `nonce` and `balance` whenever changes occur—specifically, when the `nonce` increments (indicating that a transaction from that EOA has been executed) or when the `balance` changes without a `nonce` increment (e.g., after an Account Abstraction (AA) transaction has interacted with that EOA). 
+To efficiently ensure that all valid IL txs have been included in the payload, builders can adopt a simple strategy: prior to building the payload, they store the `nonce` and `balance` of all Externally Owned Accounts (EOAs) involved in IL transactions. As they construct the payload, builders track these EOAs, maintaining and updating each EOA's `nonce` and `balance` whenever changes occur—specifically, when the `nonce` increments (indicating that a transaction from that EOA has been executed) or when the `balance` decreases without a `nonce` increment (e.g., after an Account Abstraction (AA) transaction has interacted with that EOA). 
 
 This tracking allows builders to verify IL transaction validity in real-time, enabling them to add transactions sequentially until all remaining transactions are either invalid because the nonce or balance of the associated EOA does not change or cannot be included due to insufficient gas. This approach minimizes overhead by keeping track only of the state changes that are relevant to the validity of IL txs.
 
