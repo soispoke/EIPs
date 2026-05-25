@@ -13,7 +13,7 @@ requires: 7843, 8141
 
 ## Abstract
 
-EIP-8141 frame transactions can reference recent application-published roots without reading mutable storage during validation. Applications publish roots to a system contract keyed by `(source_id, slot)`, where `source_id` derives from the writer address and a salt. A frame transaction may declare recent root references of the form:
+EIP-8141 frame transactions can reference recent roots without reading mutable storage during validation. A root source writes roots to a system contract, with each root keyed by `(source_id, slot)`, where `source_id` derives from the writer address and a salt. A frame transaction may declare recent root references of the form:
 
 ```text
 (source_id, slot, root)
@@ -27,7 +27,7 @@ EIP-8141 validation must not read arbitrary storage controlled by another accoun
 
 Recent root references let a transaction explicitly name recent roots in its signed transaction envelope. Each reference maps to one system-contract storage key and can be checked before validation code runs.
 
-Privacy applications, for example, keep a tree of commitments and prove spends against a recent tree root. With this EIP, the application writes a root each slot, and spend transactions reference that root directly instead of reading the application's changing tree state during validation.
+Privacy applications, for example, keep a tree of commitments and prove spends against a recent tree root. With this EIP, the application writes roots by slot, and spend transactions reference one of those roots directly instead of reading the application's changing tree state during validation.
 
 ## Specification
 
