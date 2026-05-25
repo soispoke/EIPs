@@ -2,7 +2,7 @@
 eip: TBD
 title: Recent Root References for Frame Transactions
 description: Frame transactions can declare verified recent roots
-author: Thomas Thiery (@soispoke), Vitalik Buterin (@vbuterin)
+author: Thomas Thiery (@soispoke), Vitalik Buterin (@vbuterin), Toni Wahrstätter (@nerolation)
 discussions-to: TBD
 status: Draft
 type: Standards Track
@@ -13,23 +13,21 @@ requires: 7843, 8141
 
 ## Abstract
 
-Adds recent root references to EIP-8141 frame transactions.
-
-A root source is a source address plus a salt. It stores roots over time, with each root keyed by the slot in which it was written. A frame transaction may declare recent root references of the form:
+EIP-8141 frame transactions can reference recent roots without reading mutable storage during validation. A root source writes roots to a system contract, with each root keyed by `(source_id, slot)`, where `source_id` derives from the writer address and a salt. A frame transaction may declare recent root references of the form:
 
 ```text
 (source_id, slot, root)
 ```
 
-Before a frame transaction runs, clients check each reference against the state immediately before that transaction. The check succeeds only if the named root is stored for the named source and slot, and the slot is still recent. Validation code can then read the verified reference through transaction introspection.
+Before frame execution, clients check each reference against the transaction pre-state. The check succeeds only if the named root is stored for the named source and slot, and the slot is still recent. Validation code can then read the verified reference through transaction introspection.
 
 ## Motivation
 
-EIP-8141 validation must not read arbitrary storage controlled by another account or application in the public mempool. Some validation rules still need to depend on recent roots, such as privacy tree roots, wallet authorization roots, or account validation roots.
+EIP-8141 validation must not read arbitrary storage controlled by another account or application in the public mempool. Some validation rules still need to depend on recent application state, such as privacy tree roots, wallet authorization roots, or account validation roots.
 
-Recent root references let a transaction explicitly name one recent root in its signed transaction envelope. Each reference maps to one system-contract storage key and can be checked before validation code runs.
+Recent root references let a transaction explicitly name recent roots in its signed transaction envelope. Each reference maps to one system-contract storage key and can be checked before validation code runs.
 
-Privacy applications often keep a tree of commitments and prove spends against a recent tree root. With this EIP, the application writes a root for a recent slot, and spend transactions reference that root directly instead of reading the application's changing tree state during validation.
+Privacy applications, for example, keep a tree of commitments and prove spends against a recent tree root. With this EIP, the application writes roots by slot, and spend transactions reference one of those roots directly instead of reading the application's changing tree state during validation.
 
 ## Specification
 
@@ -353,15 +351,23 @@ EIP-8141 validation needs inputs that are known before validation starts. Genera
 
 Recent root references provide a narrow exception. The root is declared in the signed transaction envelope, checked by clients before validation code runs, and exposed to validation code only through introspection. Recent root references are intentionally narrow: each reference names one recent `bytes32` root and one system-contract storage key.
 
+### Entry binding
+
 Each stored entry commits to the root source, slot, and root. This prevents an old root at the same array index, or a root from another root source, from satisfying a reference.
+
+### Window choice
 
 References are limited to slots strictly before `current_slot`. During slot `S`, writes update index `S mod RECENT_ROOT_LENGTH`, but references to `S` are invalid and references old enough to share that index are expired. Current-slot writes therefore cannot invalidate currently valid references.
 
+`RECENT_ROOT_LENGTH = 8192` gives `RECENT_ROOT_USABLE_WINDOW = 8191`, because the current slot is not referenceable.
+
+### Implicit source creation
+
 No creation transaction is required. A root source is created implicitly when a source address first writes with a new `(source_address, salt)` pair. Each root source has a bounded rolling window. Aggregate storage grows linearly with the number of written root sources. State growth is paid incrementally by the writes that create storage entries.
 
-For validation checks, each declared reference names exactly one storage key under `RECENT_ROOT_ADDRESS`.
+### Bounded validation work
 
-`RECENT_ROOT_LENGTH = 8192` gives `RECENT_ROOT_USABLE_WINDOW = 8191`, because the current slot is not referenceable.
+For validation checks, each declared reference names exactly one storage key under `RECENT_ROOT_ADDRESS`.
 
 `MAX_RECENT_ROOT_REFERENCES = 16` bounds pre-execution reference checks while covering the expected root set for privacy, wallet authorization, and historical state root use cases.
 
@@ -373,7 +379,7 @@ References to slots before this EIP's activation are not satisfiable because rec
 
 ## Security Considerations
 
-Consensus treats `root` as an opaque `bytes32`. Applications define what it commits to and MUST bind the expected `source_id`, slot window, and root in their validation logic. For example, a privacy proof using root `R` should include `(source_id, slot, R)` or an application-specific commitment to those fields as a public input, and validation logic MUST check the same tuple through `RECENTROOTREFLOAD`.
+Consensus treats `root` as an opaque `bytes32`. Applications define what it commits to and MUST bind the expected `source_id`, slot window, and root in their validation logic. A privacy proof using root `R` should include `(source_id, slot, R)` or an application-specific commitment to those fields as a public input, and validation logic MUST check the same tuple through `RECENTROOTREFLOAD`.
 
 Each `(source_id, slot)` has one referenceable root on the canonical chain. The referenceable root is last-write-wins according to canonical execution order and is finalized with the containing block. An application that needs multiple roots from the same slot SHOULD write an aggregate commitment.
 
